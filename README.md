@@ -2,7 +2,7 @@
 This project is Task Manager, as name states, this application exposes API to create task and it is assigned to a user. Task has labels, priority, sub tasks, attachments and more.
 This application is built using .NET Core 7 WEB API and cosmos db as database.
 
-Complete video can be watched here[https://youtu.be/zdih5L0I880] https://youtu.be/zdih5L0I880
+Complete video can be watched here https://youtu.be/zdih5L0I880
 
 ## Steps to make this application work
 
