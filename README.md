@@ -7,9 +7,9 @@ Complete video can be watched here[https://youtu.be/zdih5L0I880] https://youtu.b
 ## Steps to make this application work
 
 * Configure the cosmos db either imstall cosmos db emulator or provision using Azure Portal (watch starting of the video)
- ** Watch this video to provision Cosmos Db in Azure portal. https://youtu.be/kxBafyDy5LQ
- ** Watch this video to see how to setup Cosmos DB Emulator in local https://youtu.be/8NlCk2_Tl10
-	*** To install Emulator use this link to download https://aka.ms/cosmosdb-emulator
+* Watch this video to provision Cosmos Db in Azure portal. https://youtu.be/kxBafyDy5LQ
+* Watch this video to see how to setup Cosmos DB Emulator in local https://youtu.be/8NlCk2_Tl10
+* To install Emulator use this link to download https://aka.ms/cosmosdb-emulator
 * Database name should be "PersonalTaskManagerDB", two containers namely "Tasks" and "Users". If you name differently, just adjust the details in the configuration.
 * Once you have setup the database, containers as per the video you need to replace the URL, Primary Key in the configuration.
 * You are all set! Now, if you run the application will boot. 
