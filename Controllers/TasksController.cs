@@ -1,12 +1,15 @@
 ﻿using LearnSmartCoding.CosmosDb.Linq.API.Core;
 using LearnSmartCoding.CosmosDb.Linq.API.Data;
 using LearnSmartCoding.CosmosDb.Linq.API.Model;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LearnSmartCoding.CosmosDb.Linq.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    //[ApiController]
+    //[Route("api/tasks")]
     public class TasksController : ControllerBase
     {
         private readonly ITaskRepository _taskRepository;

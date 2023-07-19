@@ -1,7 +1,14 @@
+
+using Azure.Storage.Blobs;
 using LearnSmartCoding.CosmosDb.Linq.API.Data;
+using LearnSmartCoding.CosmosDb.Linq.API.Model;
 using Microsoft.ApplicationInsights.Extensibility;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.Azure.Cosmos;
 using Serilog;
+using Serilog.Events;
+using System.Collections;
+using System.Net;
 
 namespace LearnSmartCoding.CosmosDb.Linq.API
 {
@@ -18,9 +25,34 @@ namespace LearnSmartCoding.CosmosDb.Linq.API
 
                 builder.Services.AddApplicationInsightsTelemetry();
 
+                // for local storage
+                //Log.Logger = new LoggerConfiguration()
+                //        .WriteTo.Console()
+                //        .MinimumLevel.Information()
+                //        .WriteTo.File("/app/logs/application.log", rollingInterval: RollingInterval.Day,
+                //          fileSizeLimitBytes: 5242880, retainedFileCountLimit: 7,
+                //        outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff} [{Level:u3}] {Message:lj}{NewLine}{Exception}")
+                //        .Enrich.FromLogContext()
+                //        .CreateBootstrapLogger();
+
+
+                // Read the Azure Blob Storage settings from appsettings.json
+                var azureBlobStorageSettings = configuration.GetSection("AzureBlobStorage").Get<AzureBlobStorageSettings>();
+
                 // Configure Serilog with the settings
                 Log.Logger = new LoggerConfiguration()
-                .WriteTo.Console()                
+                .WriteTo.Console()
+                .MinimumLevel.Information()
+                .WriteTo.AzureBlobStorage(
+                    blobServiceClient: new BlobServiceClient(azureBlobStorageSettings?.ConnectionString),
+                    restrictedToMinimumLevel: LogEventLevel.Verbose,
+                    storageContainerName: azureBlobStorageSettings?.ContainerName,
+                    storageFileName: "application.log",
+                    outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff} [{Level:u3}] {Message:lj}{NewLine}{Exception}",
+                    retainedBlobCountLimit: 7,
+                    blobSizeLimitBytes: 5242880,
+                    useUtcTimeZone: true
+                )
                 .Enrich.FromLogContext()
                 .CreateLogger();
 
@@ -43,6 +75,11 @@ namespace LearnSmartCoding.CosmosDb.Linq.API
                         ApplicationName = databaseName,
                         ConnectionMode = ConnectionMode.Gateway,
 
+                        //ServerCertificateCustomValidationCallback = (request, certificate, chain) =>
+                        //{
+                        //    // Always return true to ignore certificate validation errors
+                        //    return true; //not for production
+                        //}
                     };
 
                     var loggerFactory = LoggerFactory.Create(builder =>
@@ -76,8 +113,26 @@ namespace LearnSmartCoding.CosmosDb.Linq.API
 
                 var app = builder.Build();
 
+
+                // Enable Serilog exception logging
+                app.UseExceptionHandler(errorApp =>
+                {
+                    errorApp.Run(async context =>
+                    {
+                        var exceptionHandlerPathFeature = context.Features.Get<IExceptionHandlerPathFeature>();
+                        var exception = exceptionHandlerPathFeature?.Error;
+
+                        Log.Error(exception, "Unhandled exception occurred. {ExceptionDetails}", exception?.ToString());
+
+                        context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+                        await context.Response.WriteAsync("An unexpected error occurred. Please try again later.");
+                    });
+                });
+
+                app.UseMiddleware<RequestResponseLoggingMiddleware>();
+
                 // Configure the HTTP request pipeline.
-                if (app.Environment.IsDevelopment())
+                // if (app.Environment.IsDevelopment())
                 {
                     app.UseSwagger();
                     app.UseSwaggerUI();
